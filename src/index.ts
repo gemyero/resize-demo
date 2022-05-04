@@ -1,5 +1,6 @@
 import fs from 'fs';
 import sharp from 'sharp';
+import axios from 'axios';
 import AWS from 'aws-sdk';
 import stream from 'stream';
 import { promisify } from 'util';
@@ -22,16 +23,18 @@ const writeStreamToS3 = (Bucket: string, Key: string, ContentType: string) => {
 const streamToSharp = (width: number, height: number) => sharp({ failOnError: false })
   .resize(width, height);
 
+const imageUrl = 'https://ipfs.io/ipfs/QmRbi9VjSyf3aX7nHc7hF17DfcxYfDxsxfAnzkTVF6DDdS/Random%20Akutar%20Airdrop%20Pass.gif';
+
 (async () => {
+  console.time('test');
   try {
-    const imageDataUri = fs.readFileSync('./image.txt', { encoding: 'utf8' })
-      .replace(/^data:image\/[\w+]+;base64,/, '');
+    // const { data: imageStream } = await axios.get(imageUrl, { responseType: 'stream' });
 
-    const imageBuffer = Buffer.from(imageDataUri, 'base64');
+    const imageStream = fs.createReadStream('./Random Akutar Airdrop Pass.gif');
 
-    const imageStream = stream.Readable.from(imageBuffer);
+    const contentType = 'image/gif';
 
-    const { writeStream, uploadFinished } = writeStreamToS3('resize-images-demo', 'somekeyyyxx.png', 'image/png');
+    const { writeStream, uploadFinished } = writeStreamToS3('resize-images-demo', 'somekeyyyxx', contentType);
 
     const resizeStream = streamToSharp(400, 400);
 
@@ -39,6 +42,7 @@ const streamToSharp = (width: number, height: number) => sharp({ failOnError: fa
 
     const data = await uploadFinished;
     console.log({ data });
+    console.timeEnd('test');
   } catch (error) {
     console.log({ error });
   }
